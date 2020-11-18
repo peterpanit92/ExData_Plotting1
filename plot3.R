@@ -1,0 +1,53 @@
+## Load data into a data frame called "epc"
+
+epc <- read.table("household_power_consumption.txt", header=TRUE,
+                  sep=";", na.strings="?", colClasses=c(
+                    'character', 'character', 'numeric', 
+                    'numeric', 'numeric', 'numeric', 'numeric',
+                    'numeric', 'numeric'))
+
+## Change the format of date columns to date
+
+epc$Date <- as.Date(epc$Date, "%d/%m/%Y")
+
+
+## Filter dtata from Feb. 1 20077 to Feb. 2, 2007
+
+epc <- subset(epc, Date >= as.Date("2007-2-1") & 
+                Date <= as.Date("2007-2-2"))
+
+## REmove incomplete observations
+
+epc <- epc[complete.cases(epc),]
+
+## Combine Date and Time column
+dateTime <- paste(epc$Date, epc$Time)
+
+## Name the Vector
+dateTime <- data.frame(dateTime)
+
+dateTime <- setNames(dateTime, "DateTime")
+
+## Remove data and time columns from epc
+
+epc <- epc[ , !(names(epc) %in% c("Date", "Time"))]
+
+## Combine epc and DateTime column
+epc <- cbind(dateTime, epc)
+
+## Format dateTime column
+epc$DateTime <- as.POSIXct(epc$DateTime)
+
+## CREATE PLOT 3
+with(epc, {
+  plot(Sub_metering_1~DateTime, type="l",
+       ylab="Global Active Power (kilowatts)", xlab="")
+  lines(Sub_metering_2~DateTime,col='Red')
+  lines(Sub_metering_3~DateTime,col='Blue')
+})
+legend("topright", col=c("black", "red", "blue"), lwd = c(1,1,1),
+       c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"))
+     
+dev.copy(png, "plot3.png", width = 480, height = 480)
+dev.off()
+
